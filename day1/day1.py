@@ -33,7 +33,6 @@ def compute_fuel_part_2(mass):
 
 if __name__ == "__main__":
     import doctest
-
     doctest.testmod()
 
     masses = read_file("input.txt")
