@@ -6,7 +6,7 @@ def read_file(path):
 
 
 def compute_intersections(commands_0, commands_1):
-    return compute_positions(commands_0) & compute_positions(commands_1)
+    return set(compute_positions(commands_0)) & set(compute_positions(commands_1))
 
 
 def position_diff(direction):
@@ -21,7 +21,7 @@ def position_diff(direction):
 
 
 def compute_positions(commands):
-    positions = set()
+    positions = []
 
     x, y = 0, 0
     for command in commands:
@@ -32,27 +32,18 @@ def compute_positions(commands):
             x += dx
             y += dy
             position = (x, y)
-            positions.add(position)
+            positions.append(position)
     return positions
 
 
 def compute_steps(commands):
     position_to_steps = {}
-
     steps = 0
-    x, y = 0, 0
-    for command in commands:
-        direction = command[0]
-        length = int(command[1:])
-
-        dx, dy = position_diff(direction)
-        for _ in range(length):
-            steps += 1
-            x += dx
-            y += dy
-            position = (x, y)
-            if position not in position_to_steps:
-                position_to_steps[position] = steps
+    positions = compute_positions(commands)
+    for position in positions:
+        steps += 1
+        if position not in position_to_steps:
+            position_to_steps[position] = steps
 
     return position_to_steps
 
