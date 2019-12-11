@@ -16,6 +16,33 @@ OPCODE_RELATIVE_BASE = 9
 OPCODE_STOP = 99
 
 
+def read_program(path):
+    with open(path, "r") as file:
+        file_content = file.read()
+        lines = file_content.split(",")
+        return list(map(int, lines))
+
+
+class VM:
+
+    def __init__(self, state):
+        self.program = process(state)
+        self.running = True
+        self.stored_output = None
+
+
+    def send_input(self, to_send):
+        next(self.program)
+        self.stored_output = self.program.send(to_send)
+
+    def get_output(self):
+        if self.stored_output is not None:
+            output = self.stored_output
+            self.stored_output = None
+            return output
+        return next(self.program)
+
+
 def process(state):
     state_map = defaultdict(lambda: 0)
     for i, value in enumerate(state):
@@ -49,11 +76,12 @@ def process(state):
 
         if instruction == OPCODE_INPUT:
             store_address = get_store_addres(0, mode_0)
-            state_map[store_address] = int(input())
+            input_value = yield
+            state_map[store_address] = int(input_value)
             ip += 2
         elif instruction == OPCODE_OUTPUT:
             output = get_parameter(0, mode_0)
-            print(output)
+            yield output
             ip += 2
         else:
             parameter_0 = get_parameter(0, mode_0)
@@ -84,4 +112,3 @@ def process(state):
                 relative_base += parameter_0
                 ip += 2
 
-    return state_map
