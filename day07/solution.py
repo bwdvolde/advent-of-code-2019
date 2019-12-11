@@ -1,6 +1,6 @@
 import itertools
 
-from day7 import intcode
+from day07 import intcode
 
 
 def read_file(path):
