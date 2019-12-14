@@ -26,89 +26,78 @@ def read_program(path):
 class VM:
 
     def __init__(self, state):
-        self.program = process(state)
-        self.running = True
-        self.stored_output = None
+        self.ip = 0
+        self.relative_base = 0
+        self.state = state
 
+        self.state_map = defaultdict(lambda: 0)
+        for i, value in enumerate(state):
+            self.state_map[i] = value
 
-    def send_input(self, to_send):
-        next(self.program)
-        self.stored_output = self.program.send(to_send)
+        self.get_input_callback = lambda: input("Input:")
 
     def get_output(self):
-        if self.stored_output is not None:
-            output = self.stored_output
-            self.stored_output = None
-            return output
-        return next(self.program)
+        return self.continue_program()
 
+    def continue_program(self):
+        while self.state_map[self.ip] != OPCODE_STOP:
+            opcode = self.state_map[self.ip]
+            instruction = opcode % 100
 
-def process(state):
-    state_map = defaultdict(lambda: 0)
-    for i, value in enumerate(state):
-        state_map[i] = value
+            mode_0 = opcode // 100 % 10
+            mode_1 = opcode // 1000 % 10
+            mode_2 = opcode // 10000 % 10
 
-    ip = 0
-    relative_base = 0
+            if instruction == OPCODE_INPUT:
+                store_address = self._get_store_addres(0, mode_0)
+                self.state_map[store_address] = self.get_input_callback()
+                self.ip += 2
+            elif instruction == OPCODE_OUTPUT:
+                output = self._get_parameter(0, mode_0)
+                self.ip += 2
+                return output
+            else:
+                parameter_0 = self._get_parameter(0, mode_0)
+                parameter_1 = self._get_parameter(1, mode_1)
+                parameter_2 = self._get_store_addres(2, mode_2)
 
-    def get_parameter(i, mode):
-        param = state_map[ip + i + 1]
+                if instruction == OPCODE_ADDITION:
+                    self.state_map[parameter_2] = parameter_0 + parameter_1
+                    self.ip += 4
+                elif instruction == OPCODE_MULTIPLICATION:
+                    self.state_map[parameter_2] = parameter_0 * parameter_1
+                    self.ip += 4
+                elif instruction == OPCODE_JUMP_IF_TRUE:
+                    self.ip += 3
+                    if parameter_0:
+                        self.ip = parameter_1
+                elif instruction == OPCODE_JUMP_IF_FALSE:
+                    self.ip += 3
+                    if not parameter_0:
+                        self.ip = parameter_1
+                elif instruction == OPCODE_LESS_THAN:
+                    self.state_map[parameter_2] = int(parameter_0 < parameter_1)
+                    self.ip += 4
+                elif instruction == OPCODE_EQUALS:
+                    self.state_map[parameter_2] = int(parameter_0 == parameter_1)
+                    self.ip += 4
+                elif instruction == OPCODE_RELATIVE_BASE:
+                    self.relative_base += parameter_0
+                    self.ip += 2
+
+        raise StopIteration
+
+    def _get_parameter(self, i, mode):
+        param = self.state_map[self.ip + i + 1]
         if mode == MODE_POSITION:
-            return state_map[param]
+            return self.state_map[param]
         elif mode == MODE_IMMEDIATE:
             return param
         else:
-            return state_map[param + relative_base]
+            return self.state_map[param + self.relative_base]
 
-    def get_store_addres(i, mode):
-        store_address = get_parameter(i, MODE_IMMEDIATE)
+    def _get_store_addres(self, i, mode):
+        store_address = self._get_parameter(i, MODE_IMMEDIATE)
         if mode == MODE_RELATIVE:
-            store_address += relative_base
+            store_address += self.relative_base
         return store_address
-
-    while state_map[ip] != OPCODE_STOP:
-        opcode = state_map[ip]
-        instruction = opcode % 100
-
-        mode_0 = opcode // 100 % 10
-        mode_1 = opcode // 1000 % 10
-        mode_2 = opcode // 10000 % 10
-
-        if instruction == OPCODE_INPUT:
-            store_address = get_store_addres(0, mode_0)
-            input_value = yield
-            state_map[store_address] = int(input_value)
-            ip += 2
-        elif instruction == OPCODE_OUTPUT:
-            output = get_parameter(0, mode_0)
-            yield output
-            ip += 2
-        else:
-            parameter_0 = get_parameter(0, mode_0)
-            parameter_1 = get_parameter(1, mode_1)
-            parameter_2 = get_store_addres(2, mode_2)
-
-            if instruction == OPCODE_ADDITION:
-                state_map[parameter_2] = parameter_0 + parameter_1
-                ip += 4
-            elif instruction == OPCODE_MULTIPLICATION:
-                state_map[parameter_2] = parameter_0 * parameter_1
-                ip += 4
-            elif instruction == OPCODE_JUMP_IF_TRUE:
-                ip += 3
-                if parameter_0:
-                    ip = parameter_1
-            elif instruction == OPCODE_JUMP_IF_FALSE:
-                ip += 3
-                if not parameter_0:
-                    ip = parameter_1
-            elif instruction == OPCODE_LESS_THAN:
-                state_map[parameter_2] = int(parameter_0 < parameter_1)
-                ip += 4
-            elif instruction == OPCODE_EQUALS:
-                state_map[parameter_2] = int(parameter_0 == parameter_1)
-                ip += 4
-            elif instruction == OPCODE_RELATIVE_BASE:
-                relative_base += parameter_0
-                ip += 2
-
