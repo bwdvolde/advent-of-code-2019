@@ -99,22 +99,18 @@ def calculate_ore_needed(fuel):
     return find_final_reaction({"FUEL": fuel})["ORE"]
 
 
-ore = 1
-fuel = calculate_ore_needed(1)
-print("Part 1:", fuel)
-
-ore = 10 ** 12
+ore = calculate_ore_needed(1)
+print("Part 1:", ore)
 
 fuel_min = 1
 fuel_max = ore
 while fuel_min < fuel_max:
     fuel_mid = (fuel_min + fuel_max) // 2
     ore_needed = calculate_ore_needed(fuel_mid)
-    if ore_needed < ore < calculate_ore_needed(fuel_mid + 1):
-        fuel_min = fuel_max = fuel_mid
-    elif ore_needed < ore:
-        fuel_min = fuel_mid
+
+    if ore_needed > 10 ** 12:
+        fuel_max = fuel_mid - 1
     else:
-        fuel_max = fuel_mid
+        fuel_min = fuel_mid
 
 print("Part 2:", fuel_min)
