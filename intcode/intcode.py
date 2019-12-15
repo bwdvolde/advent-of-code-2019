@@ -34,10 +34,13 @@ class VM:
         for i, value in enumerate(state):
             self.state_map[i] = value
 
-        self.get_input_callback = lambda: input("Input:")
+        self.get_input_callback = lambda: int(input("Input: "))
 
     def get_output(self):
         return self.continue_program()
+
+    def set_input(self, input):
+        self.get_input_callback = lambda : input
 
     def continue_program(self):
         while self.state_map[self.ip] != OPCODE_STOP:
