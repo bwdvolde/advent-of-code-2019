@@ -132,15 +132,18 @@ program[0] = 2
 vm = VM(program)
 
 current_c = 0
+
+
 def input_provider():
     global current_c
     main_movement = "A,B,B,A,C,B,C,C,B,A\n"
     A = "R,10,R,8,L,10,L,10\n"
     B = "R,8,L,6,L,6\n"
     C = "L,10,R,10,L,6\n"
-    for string in main_movement, A, B, C, "y\n":
+    for string in main_movement, A, B, C, "n\n":
         for c in string:
             yield ord(c)
+
 
 provider = input_provider()
 vm.get_input_callback = lambda: next(provider)
@@ -153,7 +156,3 @@ while True:
         break
 
 print("Part 2", all_output[-1])
-
-
-
-
