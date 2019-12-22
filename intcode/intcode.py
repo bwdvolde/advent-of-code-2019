@@ -39,8 +39,25 @@ class VM:
     def get_output(self):
         return self.continue_program()
 
+    def get_ascii_output(self):
+        output = self.continue_program()
+        try:
+            return chr(output)
+        except ValueError:
+            return output
+
     def set_input(self, input):
         self.get_input_callback = lambda : input
+
+    def set_input_string(self, input_string):
+        self.set_input_strings([input_string])
+    def set_input_strings(self, input_strings):
+        def generator():
+            for string in input_strings:
+                for c in string:
+                    yield ord(c)
+        gen = generator()
+        self.get_input_callback = lambda : next(gen)
 
     def continue_program(self):
         while self.state_map[self.ip] != OPCODE_STOP:
