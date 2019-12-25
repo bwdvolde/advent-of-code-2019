@@ -47,17 +47,22 @@ class VM:
             return output
 
     def set_input(self, input):
-        self.get_input_callback = lambda : input
+        self.get_input_callback = lambda: input
+
+    def set_input_generator(self, generator):
+        self.get_input_callback = lambda: next(generator)
 
     def set_input_string(self, input_string):
         self.set_input_strings([input_string])
+
     def set_input_strings(self, input_strings):
         def generator():
             for string in input_strings:
                 for c in string:
                     yield ord(c)
+
         gen = generator()
-        self.get_input_callback = lambda : next(gen)
+        self.get_input_callback = lambda: next(gen)
 
     def continue_program(self):
         while self.state_map[self.ip] != OPCODE_STOP:

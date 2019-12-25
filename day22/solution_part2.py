@@ -3,20 +3,6 @@ import re
 
 from read_file.read_file import read_file
 
-# techniques = """deal into new stack
-# cut -2
-# deal with increment 7
-# cut 8
-# cut -4
-# deal with increment 7
-# cut 3
-# deal with increment 9
-# deal with increment 3
-# cut -1""".split("\n")
-
-
-techniques = read_file("input.txt")[:-1]
-
 
 def egcd(a, b):
     if a == 0:
@@ -99,6 +85,7 @@ def rewrite_techniques(techniques, deck_size):
 deck_size = 119315717514047
 apply_n_times = 101741582076661
 
+techniques = read_file("input.txt")[:-1]
 techniques = rewrite_techniques(techniques, deck_size)
 
 techniques_for_power = {1: techniques}
