@@ -60,6 +60,7 @@ class VM:
             for string in input_strings:
                 for c in string:
                     yield ord(c)
+                yield ord("\n")
 
         gen = generator()
         self.get_input_callback = lambda: next(gen)
